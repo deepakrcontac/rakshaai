@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RakshaAI — Fraud Shield Console</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+  :root{
+    --navy:#0e1c30;
+    --navy-2:#16283f;
+    --paper:#f3f5f8;
+    --card:#ffffff;
+    --line:#dde2e8;
+    --ink:#1c2733;
+    --ink-soft:#5b6779;
+    --safe:#1f6f4a;
+    --safe-bg:#e6f2ec;
+    --warn:#c07a1e;
+    --warn-bg:#fbeddb;
+    --danger:#a63a3a;
+    --danger-bg:#f6e2e2;
+    --accent:#c65a2e;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+    --serif: "Source Serif 4", Georgia, serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  :focus-visible{outline:2.5px solid var(--accent); outline-offset:2px;}
+
+  /* ---------- Header ---------- */
+  header{
+    background:var(--navy); color:#fff;
+    padding:16px 28px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:3px solid var(--accent);
+  }
+  .brand{display:flex; align-items:center; gap:13px;}
+  .brand-mark{
+    width:38px; height:38px; border-radius:7px; background:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-weight:700; font-size:17px; color:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
+  }
+  .brand-text .name{font-family:var(--serif); font-size:19px; font-weight:700; letter-spacing:0.2px;}
+  .brand-text .tag{font-size:11px; color:#a9b6c8; margin-top:2px; font-family:var(--mono); letter-spacing:0.3px;}
+  .status-pill{
+    font-family:var(--mono); font-size:11px; color:#c9e8d6;
+    background:rgba(31,111,74,0.22); border:1px solid rgba(62,207,142,0.4);
+    padding:6px 12px; border-radius:20px; display:flex; align-items:center; gap:7px;
+  }
+  .status-dot{width:7px; height:7px; border-radius:50%; background:#3ecf8e; box-shadow:0 0 0 3px rgba(62,207,142,0.2);}
+
+  /* ---------- Tabs ---------- */
+  nav.tabs{
+    display:flex; gap:2px; background:#0c1728; padding:0 24px;
+    border-bottom:1px solid #24344c; overflow-x:auto;
+  }
+  nav.tabs button{
+    background:transparent; border:none; color:#8b98ac; cursor:pointer;
+    padding:14px 18px; font-family:var(--sans); font-size:13px; font-weight:600;
+    border-bottom:2.5px solid transparent; transition:all .15s ease;
+    letter-spacing:0.15px; white-space:nowrap;
+  }
+  nav.tabs button:hover{color:#fff;}
+  nav.tabs button.active{color:#fff; border-bottom-color:var(--accent);}
+
+  main{max-width:1180px; margin:0 auto; padding:28px 24px 60px;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:22px;}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:24px 26px; box-shadow:0 1px 2px rgba(16,30,51,0.04);
+  }
+  .card + .card{margin-top:18px;}
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:1.3px; text-transform:uppercase;
+    color:var(--accent); margin-bottom:7px; font-weight:600;
+  }
+  h2{font-family:var(--serif); font-size:21px; margin:0 0 5px; font-weight:700; color:var(--navy);}
+  .sub{font-size:13px; color:var(--ink-soft); margin:0 0 18px; line-height:1.55;}
+
+  label{font-size:12.5px; font-weight:600; color:var(--ink); display:block; margin-bottom:6px;}
+  textarea, select, input{
+    width:100%; font-family:var(--sans); font-size:13.5px; color:var(--ink);
+    border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:#fbfcfd;
+    transition:border-color .15s ease;
+  }
+  textarea{resize:vertical; min-height:112px; line-height:1.55;}
+  textarea:focus, select:focus, input:focus{outline:none; border-color:#8a99b0; box-shadow:0 0 0 3px rgba(16,30,51,0.06);}
+  .field{margin-bottom:14px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+
+  .presets{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+  .chip{
+    font-family:var(--mono); font-size:11.5px; padding:6px 11px; border-radius:5px;
+    border:1px solid var(--line); background:#fbfcfd; cursor:pointer; color:var(--ink-soft);
+    transition:all .12s ease;
+  }
+  .chip:hover{border-color:var(--accent); color:var(--accent); background:#fdf4ef;}
+
+  .btn{
+    font-family:var(--sans); font-weight:600; font-size:13.5px; cursor:pointer;
+    border:none; border-radius:7px; padding:11px 20px; color:#fff; background:var(--navy);
+    display:inline-flex; align-items:center; gap:8px; transition:background .12s ease;
+  }
+  .btn:hover{background:#081222;}
+  .btn.accent{background:var(--accent);}
+  .btn.accent:hover{background:#a94a22;}
+  .btn.ghost{background:#fff; color:var(--navy); border:1px solid var(--line);}
+  .btn.ghost:hover{background:#f5f7f9;}
+  .btn:disabled{opacity:0.5; cursor:not-allowed;}
+  .btn-row{display:flex; gap:10px; margin-top:4px; flex-wrap:wrap;}
+  .icon{width:15px; height:15px; flex-shrink:0;}
+
+  /* ---------- Gauge ---------- */
+  .gauge-wrap{display:flex; flex-direction:column; align-items:center; padding:6px 0 4px;}
+  .gauge-num{font-family:var(--mono); font-size:40px; font-weight:700; margin-top:-48px;}
+  .gauge-label{font-family:var(--mono); font-size:11px; letter-spacing:1px; color:var(--ink-soft); text-transform:uppercase; margin-top:2px;}
+  .risk-tag{
+    font-family:var(--mono); font-size:12px; font-weight:700; padding:5px 13px;
+    border-radius:5px; letter-spacing:0.5px; margin-top:11px;
+  }
+  .risk-low{background:var(--safe-bg); color:var(--safe);}
+  .risk-med{background:var(--warn-bg); color:var(--warn);}
+  .risk-high{background:var(--danger-bg); color:var(--danger);}
+  .threshold-note{font-size:11px; color:var(--ink-soft); text-align:center; margin-top:12px; font-family:var(--mono);}
+
+  .result-block{border-top:1px dashed var(--line); margin-top:18px; padding-top:16px;}
+  .kv{display:flex; justify-content:space-between; padding:7px 0; font-size:13px; border-bottom:1px solid #eef1f4; gap:12px;}
+  .kv .k{color:var(--ink-soft);}
+  .kv .v{font-weight:600; text-align:right; max-width:60%;}
+  .tactics{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .tactic{
+    font-size:11.5px; font-family:var(--mono); background:var(--danger-bg); color:var(--danger);
+    padding:4px 9px; border-radius:4px; border:1px solid #eccece;
+  }
+  .explain{font-size:13px; line-height:1.6; color:var(--ink); margin-top:10px;}
+
+  .empty{color:var(--ink-soft); font-size:13px; padding:34px 10px; text-align:center; border:1px dashed var(--line); border-radius:8px;}
+
+  .note{
+    font-size:12px; color:var(--ink-soft); background:#f0f2f5; border-left:3px solid var(--navy);
+    padding:10px 13px; border-radius:4px; margin-top:14px; line-height:1.55;
+  }
+
+  /* ---------- Overview tab ---------- */
+  .hero{
+    background:linear-gradient(160deg, var(--navy) 0%, #182b45 100%); color:#fff;
+    border-radius:12px; padding:38px 36px; margin-bottom:24px; position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:''; position:absolute; right:-60px; top:-60px; width:220px; height:220px;
+    border-radius:50%; border:1px solid rgba(255,255,255,0.08); pointer-events:none;
+  }
+  .hero .eyebrow{color:#e0a081;}
+  .hero h1{font-family:var(--serif); font-size:30px; font-weight:700; margin:6px 0 12px; max-width:640px; line-height:1.25;}
+  .hero p{font-size:14px; color:#c3cddc; max-width:600px; line-height:1.65; margin:0 0 22px;}
+  .hero-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+  .hero-stat{border-left:2px solid var(--accent); padding-left:12px;}
+  .hero-stat .n{font-family:var(--mono); font-size:24px; font-weight:700; color:#fff;}
+  .hero-stat .l{font-size:11.5px; color:#9fabc0; margin-top:3px; line-height:1.4;}
+  @media (max-width:800px){ .hero-stats{grid-template-columns:1fr 1fr;} }
+
+  .flow-wrap{display:flex; gap:0; overflow-x:auto; padding:6px 2px 10px;}
+  .flow-step{
+    flex:1; min-width:170px; position:relative; padding:20px 18px 18px; background:#fff;
+    border:1px solid var(--line); border-radius:8px; margin-right:14px;
+  }
+  .flow-step:last-child{margin-right:0;}
+  .flow-num{
+    width:26px; height:26px; border-radius:50%; background:var(--navy); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-family:var(--mono);
+    font-weight:700; font-size:12px; margin-bottom:12px;
+  }
+  .flow-step h3{font-size:13.5px; margin:0 0 6px; font-weight:700; color:var(--navy);}
+  .flow-step p{font-size:12px; color:var(--ink-soft); margin:0; line-height:1.5;}
+  .flow-arrow{position:absolute; right:-14px; top:34px; color:#c3cad4; font-size:16px; z-index:2;}
+
+  .usp-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  @media (max-width:900px){ .usp-grid{grid-template-columns:1fr 1fr;} }
+  @media (max-width:600px){ .usp-grid{grid-template-columns:1fr;} }
+  .usp{background:#fff; border:1px solid var(--line); border-radius:8px; padding:16px 18px; border-top:3px solid var(--accent);}
+  .usp:nth-child(2n){border-top-color:var(--safe);}
+  .usp h4{font-size:13px; margin:0 0 6px; font-weight:700; color:var(--navy);}
+  .usp p{font-size:12px; color:var(--ink-soft); margin:0; line-height:1.5;}
+
+  /* ---------- Dashboard table ---------- */
+  table{width:100%; border-collapse:collapse; font-size:12.8px;}
+  th{
+    text-align:left; font-family:var(--mono); font-size:10.5px; letter-spacing:0.6px;
+    text-transform:uppercase; color:var(--ink-soft); padding:10px; border-bottom:2px solid var(--line);
+  }
+  td{padding:11px 10px; border-bottom:1px solid #eef1f4; vertical-align:middle;}
+  tr{cursor:pointer;}
+  tr:hover td{background:#fafbfc;}
+  tr.selected td{background:#fdf4ef;}
+  .badge{
+    font-family:var(--mono); font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;
+  }
+  .badge-low{background:var(--safe-bg); color:var(--safe);}
+  .badge-med{background:var(--warn-bg); color:var(--warn);}
+  .badge-high{background:var(--danger-bg); color:var(--danger);}
+  .score-num{font-family:var(--mono); font-weight:700;}
+
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;}
+  .stat{background:#fff; border:1px solid var(--line); border-radius:9px; padding:17px 17px;}
+  .stat .n{font-family:var(--mono); font-size:25px; font-weight:700; color:var(--navy);}
+  .stat .l{font-size:11.5px; color:var(--ink-soft); margin-top:3px;}
+  @media (max-width:800px){ .stat-row{grid-template-columns:1fr 1fr;} }
+
+  .fusion-banner{
+    display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+    background:linear-gradient(160deg, var(--navy) 0%, #182b45 100%); color:#fff; border-radius:10px; padding:22px 24px; margin-bottom:20px;
+  }
+  .fusion-banner .l1{font-size:11.5px; color:#9fabc0; font-family:var(--mono); letter-spacing:0.6px;}
+  .fusion-banner .l2{font-size:20px; font-weight:700; margin-top:5px; font-family:var(--serif);}
+  .fusion-score{font-family:var(--mono); font-size:42px; font-weight:700;}
+
+  .table-toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;}
+
+  .sources{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
+  .source-chip{font-family:var(--mono); font-size:11px; color:var(--ink-soft); background:#f0f2f5; padding:5px 10px; border-radius:4px;}
+
+  footer{
+    text-align:center; font-size:11.5px; color:var(--ink-soft); padding:26px 0 10px;
+    font-family:var(--mono);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">R</div>
+    <div class="brand-text">
+      <div class="name">RakshaAI</div>
+      <div class="tag">VOICE-FIRST FRAUD SHIELD · TEAM VIT VEL</div>
+    </div>
+  </div>
+  <div class="status-pill"><span class="status-dot"></span> LIVE PROTOTYPE</div>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-view="v0">Overview</button>
+  <button data-view="v1">1 · Pre-Transaction Scam Shield</button>
+  <button data-view="v2">2 · Post-Transaction Risk Engine</button>
+  <button data-view="v3">3 · Fusion Dashboard</button>
+</nav>
+
+<main>
+
+  <!-- ===================== VIEW 0 : OVERVIEW ===================== -->
+  <section class="view active" id="v0">
+    <div class="hero">
+      <div class="eyebrow">FINANCIAL FRAUD PREVENTION &amp; DIGITAL TRUST</div>
+      <h1>Catch the scam before the money moves — in the language the user actually speaks.</h1>
+      <p>RakshaAI fuses a vernacular scam-intent classifier with a transaction anomaly engine into a single real-time risk index, so victims are warned before authorization, not after the debit.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="n">₹22,495 Cr</div><div class="l">lost to cyber fraud in 2025 alone</div></div>
+        <div class="hero-stat"><div class="n">1 in 5</div><div class="l">UPI families hit by fraud at least once</div></div>
+        <div class="hero-stat"><div class="n">51%</div><div class="l">of victims never file a complaint</div></div>
+        <div class="hero-stat"><div class="n">30,000+</div><div class="l">"digital arrest" complaints in 2025</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">System Flow</div>
+      <h2>How RakshaAI intercepts a scam in real time</h2>
+      <p class="sub">Five stages, from signal capture to user alert — the same pipeline running behind the two consoles in this prototype.</p>
+      <div class="flow-wrap">
+        <div class="flow-step"><div class="flow-num">1</div><h3>Signal Capture</h3><p>Incoming call, SMS, WhatsApp text, or a UPI transaction request is captured.</p></div>
+        <div class="flow-step"><div class="flow-num">2</div><h3>Vernacular NLP Scan</h3><p>Speech-to-text (regional language) → scam-intent classifier scores manipulation patterns.</p></div>
+        <div class="flow-step"><div class="flow-num">3</div><h3>Transaction Risk Engine</h3><p>Ensemble model (RF + XGBoost + Isolation Forest) scores the linked transaction pattern.</p></div>
+        <div class="flow-step"><div class="flow-num">4</div><h3>Fusion Risk Score</h3><p>Both scores combine into a single real-time risk index.</p></div>
+        <div class="flow-step"><div class="flow-num">5</div><h3>User Alert / Block</h3><p>High risk → voice alert in local language, soft transaction hold, report-to-1930 shortcut.</p></div>
+      </div>
+      <div class="note">Try it yourself: run a message through <b>Tab 1</b>, a transaction through <b>Tab 2</b>, then open <b>Tab 3</b> to see both fuse into one decision — the same way a bank's fraud desk would see it.</div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Why It's Different</div>
+      <h2>What makes RakshaAI different</h2>
+      <div class="usp-grid">
+        <div class="usp"><h4>Pre-emptive, not reactive</h4><p>Stops the scam at the call/message stage — before authorization, not after the debit.</p></div>
+        <div class="usp"><h4>Vernacular-first</h4><p>Built for Hindi/Tamil/regional speech, not just English dashboards — reaches the users most at risk.</p></div>
+        <div class="usp"><h4>Dual-signal fusion</h4><p>Combines behavioural NLP with transaction anomaly scoring for far fewer false positives.</p></div>
+        <div class="usp"><h4>Works offline-first</h4><p>Lightweight on-device model tier for low-connectivity rural areas — this demo falls back live if the cloud call fails.</p></div>
+        <div class="usp"><h4>Aligned with RBI's direction</h4><p>Mirrors RBI/NPCI's own MuleHunter.AI and proposed transaction "kill-switch" roadmap.</p></div>
+        <div class="usp"><h4>1930-ready</h4><p>One-tap escalation to the national cybercrime helpline when risk is high.</p></div>
+      </div>
+      <div class="sources">
+        <span class="source-chip">I4C / MHA 2025</span>
+        <span class="source-chip">RBI Annual Report FY24-25</span>
+        <span class="source-chip">LocalCircles Survey 2025-26</span>
+        <span class="source-chip">RBI/RBIH MuleHunter.AI</span>
+        <span class="source-chip">NPCI UPI Stats</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== VIEW 1 : NLP SCAM SHIELD ===================== -->
+  <section class="view" id="v1">
+    <div class="grid">
+      <div>
+        <div class="card">
+          <div class="eyebrow">Layer 1</div>
+          <h2>Vernacular Scam-Intent Classifier</h2>
+          <p class="sub">Paste a call transcript, SMS, or WhatsApp message. The classifier flags manipulation tactics before the user opens their payment app.</p>
+
+          <div class="presets" id="presets"></div>
+
+          <div class="field">
+            <label>Transcript / message text</label>
+            <textarea id="txInput" placeholder="e.g. Your Aadhaar-linked bank account will be blocked today. This is a digital arrest notice from Cyber Crime Cell..."></textarea>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>Detected / selected language</label>
+              <select id="langSelect">
+                <option value="en-IN">English</option>
+                <option value="hi-IN">Hindi</option>
+                <option value="ta-IN">Tamil</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Channel</label>
+              <select id="channelSelect">
+                <option>Voice Call</option>
+                <option>SMS</option>
+                <option>WhatsApp</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn accent" id="analyzeBtn">Analyze Message</button>
+            <button class="btn ghost" id="speakBtn" disabled>
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+              Play Voice Alert
+            </button>
+          </div>
+          <div class="note" id="apiNote">Classifier calls a live language model for scoring. If the request fails (offline / rate limit), it falls back automatically to the on-device rule-assist layer — mirroring RakshaAI's offline-first design.</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" id="l1ResultCard">
+          <div class="eyebrow">Result</div>
+          <h2>Scam Risk Assessment</h2>
+          <div id="l1Empty" class="empty">No message analyzed yet. Paste a transcript and click Analyze.</div>
+          <div id="l1Result" style="display:none;">
+            <div class="gauge-wrap">
+              <svg width="220" height="130" viewBox="0 0 220 130" id="gaugeSvg1">
+                <path d="M20,120 A100,100 0 0,1 220,120" fill="none" stroke="#e7eaee" stroke-width="16"/>
+                <path id="gaugeArc1" d="M20,120 A100,100 0 0,1 220,120" fill="none" stroke="#1f6f4a" stroke-width="16" stroke-dasharray="0,314" stroke-linecap="round"/>
+                <line id="needle1" x1="120" y1="120" x2="120" y2="35" stroke="#0e1c30" stroke-width="3"/>
+                <circle cx="120" cy="120" r="6" fill="#0e1c30"/>
+              </svg>
+              <div class="gauge-num" id="l1ScoreNum">0</div>
+              <div class="gauge-label">Scam-Intent Score</div>
+              <div class="risk-tag risk-low" id="l1Tag">LOW RISK</div>
+              <div class="threshold-note">Thresholds — Low &lt;40 · Medium 40-69 · High ≥70</div>
+            </div>
+            <div class="result-block">
+              <div class="kv"><span class="k">Classification</span><span class="v" id="l1Type">—</span></div>
+              <div class="kv"><span class="k">Source</span><span class="v" id="l1Source">—</span></div>
+              <div class="tactics" id="l1Tactics"></div>
+              <div class="explain" id="l1Explain"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== VIEW 2 : TRANSACTION RISK ENGINE ===================== -->
+  <section class="view" id="v2">
+    <div class="grid">
+      <div>
+        <div class="card">
+          <div class="eyebrow">Layer 2</div>
+          <h2>Post-Transaction Fraud Engine</h2>
+          <p class="sub">Simulates the ensemble scoring layer (Random Forest + XGBoost + Isolation Forest) using transaction behaviour features.</p>
+
+          <div class="row2">
+            <div class="field">
+              <label>Transaction amount (₹)</label>
+              <input type="number" id="amount" value="45000">
+            </div>
+            <div class="field">
+              <label>Avg. historical transaction (₹)</label>
+              <input type="number" id="avgAmount" value="3500">
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>Payee account age (days)</label>
+              <input type="number" id="payeeAge" value="1">
+            </div>
+            <div class="field">
+              <label>Transactions in last 24h</label>
+              <input type="number" id="txCount" value="6">
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>Time of transaction</label>
+              <input type="time" id="txTime" value="23:40">
+            </div>
+            <div class="field">
+              <label>New device / new login?</label>
+              <select id="newDevice">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn accent" id="scoreBtn">Score Transaction</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="eyebrow">Result</div>
+          <h2>Transaction Anomaly Score</h2>
+          <div id="l2Empty" class="empty">No transaction scored yet.</div>
+          <div id="l2Result" style="display:none;">
+            <div class="gauge-wrap">
+              <svg width="220" height="130" viewBox="0 0 220 130" id="gaugeSvg2">
+                <path d="M20,120 A100,100 0 0,1 220,120" fill="none" stroke="#e7eaee" stroke-width="16"/>
+                <path id="gaugeArc2" d="M20,120 A100,100 0 0,1 220,120" fill="none" stroke="#1f6f4a" stroke-width="16" stroke-dasharray="0,314" stroke-linecap="round"/>
+                <line id="needle2" x1="120" y1="120" x2="120" y2="35" stroke="#0e1c30" stroke-width="3"/>
+                <circle cx="120" cy="120" r="6" fill="#0e1c30"/>
+              </svg>
+              <div class="gauge-num" id="l2ScoreNum">0</div>
+              <div class="gauge-label">Anomaly Score</div>
+              <div class="risk-tag risk-low" id="l2Tag">LOW RISK</div>
+              <div class="threshold-note">Thresholds — Low &lt;40 · Medium 40-69 · High ≥70</div>
+            </div>
+            <div class="result-block">
+              <div id="l2Factors"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== VIEW 3 : FUSION DASHBOARD ===================== -->
+  <section class="view" id="v3">
+    <div class="fusion-banner">
+      <div>
+        <div class="l1">FUSION RISK INDEX — LAYER 1 + LAYER 2</div>
+        <div class="l2" id="fusionAction">Awaiting inputs from both layers</div>
+      </div>
+      <div class="fusion-score" id="fusionScore">—</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="n" id="statTotal">6</div><div class="l">Cases logged this session</div></div>
+      <div class="stat"><div class="n" id="statHigh">2</div><div class="l">High-risk flags</div></div>
+      <div class="stat"><div class="n" id="statBlocked">1</div><div class="l">Auto soft-holds triggered</div></div>
+      <div class="stat"><div class="n">1930</div><div class="l">Cybercrime helpline (report shortcut)</div></div>
+    </div>
+
+    <div class="card">
+      <div class="table-toolbar">
+        <div>
+          <div class="eyebrow" style="margin-bottom:2px;">Bank / NPCI-style View</div>
+          <h2 style="margin:0;">Flagged Case Log</h2>
+        </div>
+        <button class="btn ghost" id="exportBtn">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Export Selected Case
+        </button>
+      </div>
+      <p class="sub">Click any row to select it, then export a compliance-style report. Rows appear automatically after Layer 1 / Layer 2 analysis; seed cases included for demo continuity.</p>
+      <table>
+        <thead>
+          <tr><th>Case ID</th><th>Type</th><th>Channel</th><th>Language</th><th>Risk Score</th><th>Action</th><th>Time</th></tr>
+        </thead>
+        <tbody id="caseTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>RAKSHAAI PROTOTYPE — BUILD WITH भारत 2026 — FOR HACKATHON DEMO PURPOSES ONLY</footer>
+
+<script>
+/* ---------------- Tab switching ---------------- */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.view).classList.add('active');
+  });
+});
+
+/* ---------------- Presets ---------------- */
+const presets = [
+  {label:'Digital Arrest Scam', text:"This is Inspector Sharma from Cyber Crime Cell, Mumbai. Your Aadhaar number is linked to a parcel containing illegal drugs seized at customs. You are under digital arrest. Do not disconnect this call or inform anyone. Transfer ₹2,00,000 to the RBI verification account immediately to avoid arrest."},
+  {label:'Fake KYC Update', text:"Dear customer, your bank KYC has expired and account will be blocked in 2 hours. Click link to update KYC and enter your UPI PIN to verify: bit.ly/kyc-update-now"},
+  {label:'Fake Customer Care', text:"Sir I am calling from your bank's customer care regarding a refund of ₹4,999 for a wrong debit. Please share the OTP you just received so I can process the refund to your account."},
+  {label:'Legitimate Message', text:"Your electricity bill of ₹1,240 for June is due on 5th July. Pay via the official MSEB portal or authorized app. Late payment may attract a small surcharge."}
+];
+const presetsEl = document.getElementById('presets');
+presets.forEach(p=>{
+  const c = document.createElement('div');
+  c.className='chip'; c.textContent=p.label;
+  c.onclick = ()=>{ document.getElementById('txInput').value = p.text; };
+  presetsEl.appendChild(c);
+});
+
+/* ---------------- Gauge helper ---------------- */
+function setGauge(arcId, needleId, numId, tagId, score){
+  const circumference = 314;
+  const frac = Math.max(0, Math.min(100, score))/100;
+  document.getElementById(arcId).setAttribute('stroke-dasharray', (frac*circumference)+','+circumference);
+  let color = '#1f6f4a';
+  if(score>=70) color = '#a63a3a';
+  else if(score>=40) color = '#c07a1e';
+  document.getElementById(arcId).setAttribute('stroke', color);
+  const angle = -90 + frac*180;
+  const rad = angle*Math.PI/180;
+  const cx=120, cy=120, len=85;
+  const x2 = cx + len*Math.sin(rad);
+  const y2 = cy - len*Math.cos(rad);
+  const needle = document.getElementById(needleId);
+  needle.setAttribute('x2', x2); needle.setAttribute('y2', y2);
+  document.getElementById(numId).textContent = Math.round(score);
+  document.getElementById(numId).style.color = color;
+  const tagEl = document.getElementById(tagId);
+  tagEl.classList.remove('risk-low','risk-med','risk-high');
+  if(score>=70){ tagEl.textContent='HIGH RISK'; tagEl.classList.add('risk-high'); }
+  else if(score>=40){ tagEl.textContent='MEDIUM RISK'; tagEl.classList.add('risk-med'); }
+  else { tagEl.textContent='LOW RISK'; tagEl.classList.add('risk-low'); }
+}
+
+/* ---------------- Case log ---------------- */
+const seedCases = [
+  {id:'RC-1042', type:'Digital Arrest', channel:'Voice Call', lang:'Hindi', score:92, time:'09:14', detail:'Caller impersonated Cyber Crime Cell, invoked "digital arrest", demanded urgent transfer to a verification account.'},
+  {id:'RC-1043', type:'Fake KYC SMS', channel:'SMS', lang:'Tamil', score:81, time:'10:02', detail:'SMS urged immediate KYC update via shortened link, requesting UPI PIN entry.'},
+  {id:'RC-1044', type:'Mule Transfer Pattern', channel:'UPI Txn', lang:'—', score:76, time:'11:47', detail:'Large transfer to a payee account created 1 day earlier, well above historical average.'},
+  {id:'RC-1045', type:'Smurfing Detected', channel:'UPI Txn', lang:'—', score:58, time:'12:20', detail:'Multiple small transfers within 24h to related accounts consistent with structuring behaviour.'},
+  {id:'RC-1046', type:'Fake Customer Care', channel:'Voice Call', lang:'English', score:44, time:'13:05', detail:'Caller posed as bank support offering a refund, requested OTP under pretext of "processing".'},
+  {id:'RC-1047', type:'Legitimate', channel:'SMS', lang:'English', score:8, time:'13:40', detail:'Routine utility bill reminder from a recognized biller — no manipulation cues detected.'}
+];
+let caseCounter = 1048;
+const tbody = document.getElementById('caseTable');
+let selectedRow = null;
+
+function actionFor(score){
+  if(score>=70) return {label:'Hard Block + 1930', cls:'badge-high'};
+  if(score>=40) return {label:'Soft Warn', cls:'badge-med'};
+  return {label:'Allowed', cls:'badge-low'};
+}
+function renderCase(c){
+  const a = actionFor(c.score);
+  const tr = document.createElement('tr');
+  tr.dataset.detail = c.detail || 'No additional detail captured for this case.';
+  tr.dataset.id = c.id; tr.dataset.type = c.type; tr.dataset.channel = c.channel;
+  tr.dataset.lang = c.lang; tr.dataset.score = c.score; tr.dataset.action = a.label; tr.dataset.time = c.time;
+  tr.innerHTML = `<td>${c.id}</td><td>${c.type}</td><td>${c.channel}</td><td>${c.lang}</td>
+    <td class="score-num">${c.score}</td>
+    <td><span class="badge ${a.cls}">${a.label}</span></td>
+    <td>${c.time}</td>`;
+  tr.addEventListener('click', ()=>{
+    if(selectedRow) selectedRow.classList.remove('selected');
+    tr.classList.add('selected');
+    selectedRow = tr;
+  });
+  tbody.prepend(tr);
+}
+seedCases.forEach(renderCase);
+
+function updateStats(){
+  const rows = tbody.querySelectorAll('tr');
+  document.getElementById('statTotal').textContent = rows.length;
+  let high=0, blocked=0;
+  rows.forEach(r=>{
+    const score = parseInt(r.children[4].textContent);
+    if(score>=70){ high++; blocked++; }
+  });
+  document.getElementById('statHigh').textContent = high;
+  document.getElementById('statBlocked').textContent = blocked;
+}
+updateStats();
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  if(!selectedRow){ alert('Click a row in the case log first to select it, then export.'); return; }
+  const d = selectedRow.dataset;
+  const report = `RAKSHAAI — FRAUD CASE REPORT
+================================
+Case ID:        ${d.id}
+Classification:  ${d.type}
+Channel:         ${d.channel}
+Language:        ${d.lang}
+Risk Score:      ${d.score} / 100
+Action Taken:    ${d.action}
+Timestamp:       ${d.time}
+
+Detail
+------
+${d.detail}
+
+Generated by RakshaAI Fraud Shield Console (prototype)
+Build With भारत 2026 — Team VIT VEL
+`;
+  const blob = new Blob([report], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = d.id + '_report.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+function nowTime(){
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+}
+
+/* ---------------- Fusion tracking ---------------- */
+let lastL1 = null, lastL2 = null;
+function updateFusion(){
+  const banner = document.getElementById('fusionAction');
+  const scoreEl = document.getElementById('fusionScore');
+  if(lastL1===null && lastL2===null){
+    banner.textContent = 'Awaiting inputs from both layers';
+    scoreEl.textContent = '—';
+    return;
+  }
+  let fused;
+  if(lastL1!==null && lastL2!==null){ fused = Math.round(lastL1*0.55 + lastL2*0.45); }
+  else if(lastL1!==null){ fused = lastL1; }
+  else { fused = lastL2; }
+  scoreEl.textContent = fused;
+  scoreEl.style.color = fused>=70 ? '#e77' : fused>=40 ? '#f0c27b' : '#8fd6b3';
+  const a = actionFor(fused);
+  banner.textContent = a.label + (fused>=70 ? ' — user alerted, transaction held, 1930 shortcut shown' : fused>=40 ? ' — soft in-app warning shown to user' : ' — transaction proceeds normally');
+}
+
+/* ---------------- Layer 1: NLP Scam Classifier ---------------- */
+const analyzeBtn = document.getElementById('analyzeBtn');
+const speakBtn = document.getElementById('speakBtn');
+let lastRecommendedMessage = '';
+
+function localHeuristicClassify(text){
+  const t = text.toLowerCase();
+  const categories = {
+    'Digital Arrest / Impersonation of Law Enforcement': ['digital arrest','cyber crime cell','cbi','customs','narcotics','do not disconnect','under arrest','inspector'],
+    'Fake KYC / Bank Verification': ['kyc','account will be blocked','account blocked','update your kyc','verify your account','click link'],
+    'Fake Customer Care / Refund Scam': ['refund','customer care','share the otp','share otp','share your otp'],
+    'Prize / Lottery Scam': ['won a prize','lottery','claim your reward','congratulations you have won']
+  };
+  let bestType = 'No scam pattern detected', bestScore = 0, tactics = [];
+  for(const [type, keywords] of Object.entries(categories)){
+    let hits = keywords.filter(k=>t.includes(k));
+    if(hits.length>0){
+      const score = Math.min(95, 35 + hits.length*20);
+      if(score>bestScore){ bestScore=score; bestType=type; tactics=hits; }
+    }
+  }
+  if(t.includes('otp')) tactics.push('requests OTP');
+  if(bestScore===0 && t.length>0) bestScore = 6;
+  return {
+    is_scam: bestScore>=40,
+    scam_type: bestType,
+    risk_score: bestScore,
+    tactics: tactics.length? tactics : ['no manipulation cues found'],
+    explanation: bestScore>=40 ? 'On-device rule-assist layer matched known scam-script patterns (urgency, authority impersonation, or credential requests).' : 'No known scam-script patterns matched in the on-device keyword layer.',
+    recommended_message: bestScore>=40 ? 'Warning. This message shows signs of a financial scam. Do not share OTP or transfer money. Verify independently before acting.' : 'No immediate risk detected in this message.'
+  };
+}
+
+async function classifyWithModel(text){
+  const system = `You are RakshaAI's scam-intent classifier for Indian financial fraud (UPI scams, digital arrest scams, fake KYC, fake customer-care, lottery scams). Analyze the given call/SMS/WhatsApp transcript. Respond with STRICT JSON only, no markdown fences, no preamble, matching exactly this schema:
+{"is_scam": boolean, "scam_type": string, "risk_score": number (0-100), "tactics": [string, ...], "explanation": string (max 2 sentences), "recommended_message": string (max 25 words, a short spoken warning for the user)}`;
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system: system,
+      messages: [{ role: "user", content: text }]
+    })
+  });
+  const data = await response.json();
+  const raw = (data.content||[]).map(b=>b.text||'').join('').trim();
+  const clean = raw.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+analyzeBtn.addEventListener('click', async ()=>{
+  const text = document.getElementById('txInput').value.trim();
+  if(!text){ alert('Please paste a message or transcript first.'); return; }
+  analyzeBtn.disabled = true;
+  analyzeBtn.textContent = 'Analyzing…';
+  document.getElementById('l1Empty').style.display='none';
+  document.getElementById('l1Result').style.display='block';
+
+  let result, source;
+  try{
+    result = await classifyWithModel(text);
+    source = 'Live model (cloud classifier)';
+  }catch(e){
+    result = localHeuristicClassify(text);
+    source = 'On-device rule-assist layer (fallback)';
+  }
+
+  setGauge('gaugeArc1','needle1','l1ScoreNum','l1Tag', result.risk_score);
+  document.getElementById('l1Type').textContent = result.scam_type;
+  document.getElementById('l1Source').textContent = source;
+  document.getElementById('l1Explain').textContent = result.explanation;
+  const tacticsEl = document.getElementById('l1Tactics');
+  tacticsEl.innerHTML = '';
+  (result.tactics||[]).forEach(t=>{
+    const s = document.createElement('span'); s.className='tactic'; s.textContent=t;
+    tacticsEl.appendChild(s);
+  });
+
+  lastRecommendedMessage = result.recommended_message || 'Warning: this message may be a scam.';
+  speakBtn.disabled = false;
+  lastL1 = result.risk_score;
+  updateFusion();
+
+  const channel = document.getElementById('channelSelect').value;
+  const langName = document.getElementById('langSelect').selectedOptions[0].textContent;
+  renderCase({id:'RC-'+(caseCounter++), type: result.scam_type.split('/')[0].trim(), channel: channel, lang: langName, score: Math.round(result.risk_score), time: nowTime(), detail: result.explanation});
+  updateStats();
+
+  analyzeBtn.disabled = false;
+  analyzeBtn.textContent = 'Analyze Message';
+});
+
+speakBtn.addEventListener('click', ()=>{
+  if(!('speechSynthesis' in window)){ alert('Speech synthesis not supported in this browser.'); return; }
+  const utter = new SpeechSynthesisUtterance(lastRecommendedMessage);
+  utter.lang = document.getElementById('langSelect').value;
+  utter.rate = 0.95;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utter);
+});
+
+/* ---------------- Layer 2: Transaction Risk Engine ---------------- */
+document.getElementById('scoreBtn').addEventListener('click', ()=>{
+  const amount = parseFloat(document.getElementById('amount').value)||0;
+  const avg = parseFloat(document.getElementById('avgAmount').value)||1;
+  const payeeAge = parseFloat(document.getElementById('payeeAge').value)||0;
+  const txCount = parseFloat(document.getElementById('txCount').value)||0;
+  const time = document.getElementById('txTime').value;
+  const newDevice = document.getElementById('newDevice').value;
+
+  const hour = parseInt((time||'12:00').split(':')[0]);
+  const factors = [];
+  let score = 0;
+
+  const deviation = amount/avg;
+  if(deviation>=10){ score+=32; factors.push(['Amount is '+deviation.toFixed(1)+'x above historical average', 32]); }
+  else if(deviation>=4){ score+=18; factors.push(['Amount is '+deviation.toFixed(1)+'x above historical average', 18]); }
+  else { factors.push(['Amount consistent with historical pattern', 0]); }
+
+  if(payeeAge<=2){ score+=25; factors.push(['New payee account (age ≤ 2 days) — mule-account pattern', 25]); }
+  else if(payeeAge<=7){ score+=10; factors.push(['Recently added payee (age ≤ 7 days)', 10]); }
+  else { factors.push(['Established payee relationship', 0]); }
+
+  if(txCount>=6){ score+=20; factors.push(['High transaction velocity — '+txCount+' transfers in 24h (smurfing signal)', 20]); }
+  else if(txCount>=3){ score+=8; factors.push([txCount+' transfers in 24h — moderate velocity', 8]); }
+  else { factors.push(['Normal transaction velocity', 0]); }
+
+  if(hour>=23 || hour<5){ score+=13; factors.push(['Transaction at unusual hour ('+time+')', 13]); }
+  else { factors.push(['Transaction during normal hours', 0]); }
+
+  if(newDevice==='yes'){ score+=10; factors.push(['New device / login session detected', 10]); }
+  else { factors.push(['Recognized device', 0]); }
+
+  score = Math.min(100, score);
+
+  document.getElementById('l2Empty').style.display='none';
+  document.getElementById('l2Result').style.display='block';
+  setGauge('gaugeArc2','needle2','l2ScoreNum','l2Tag', score);
+
+  const factorsEl = document.getElementById('l2Factors');
+  factorsEl.innerHTML = '<div class="explain" style="margin-top:0; font-weight:600; color:var(--navy);">Contributing factors</div>';
+  factors.forEach(([label, pts])=>{
+    const row = document.createElement('div');
+    row.className='kv';
+    row.innerHTML = `<span class="k">${label}</span><span class="v">${pts>0? '+'+pts : '—'}</span>`;
+    factorsEl.appendChild(row);
+  });
+
+  lastL2 = score;
+  updateFusion();
+
+  renderCase({id:'RC-'+(caseCounter++), type: score>=70?'Mule Transfer Pattern':score>=40?'Unusual Transaction':'Normal Transaction', channel:'UPI Txn', lang:'—', score: Math.round(score), time: nowTime(), detail: factors.filter(f=>f[1]>0).map(f=>f[0]).join('; ') || 'No anomaly factors triggered.'});
+  updateStats();
+});
+</script>
+</body>
+</html>
